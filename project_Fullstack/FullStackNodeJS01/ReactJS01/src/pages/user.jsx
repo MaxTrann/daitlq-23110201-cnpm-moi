@@ -8,12 +8,12 @@ const UserPage = () => {
     useEffect(() => {
         const fetchUser = async () => {
             const res = await getUserApi();
-            if (res && res.message) {
+            if (Array.isArray(res)) {
                 setDataSource(res)
             } else {
                 notification.error({
-                    message: "unauthorized",
-                    description: res.message
+                    message: "Không thể tải dữ liệu",
+                    description: res?.message ?? "Không thể tải danh sách người dùng"
                 })
             }
         }
@@ -31,11 +31,11 @@ const UserPage = () => {
             dataIndex: 'email',
         },
         {
-            title: 'Name',
+            title: 'Tên',
             dataIndex: 'name',
         },
         {
-            title: 'Role',
+            title: 'Vai trò',
             dataIndex: 'role',
         }
     ];

@@ -14,14 +14,14 @@ const RegisterPage = () => {
 
         if (res) {
             notification.success({
-                message: "CREATE USER",
-                description: "Success"
+                message: "Đăng ký tài khoản",
+                description: "Tạo tài khoản thành công"
             });
             navigate("/login");
         } else {
             notification.error({
-                message: "CREATE USER",
-                description: "error"
+                message: "Đăng ký tài khoản",
+                description: "Không thể tạo tài khoản"
             })
         }
     };
@@ -35,7 +35,7 @@ const RegisterPage = () => {
                     border: "1px solid #ccc",
                     borderRadius: "5px"
                 }}>
-                    <legend>Đăng Ký Tài Khoản</legend>
+                    <legend>Đăng ký tài khoản</legend>
                     <Form
                         name="basic"
                         onFinish={onFinish}
@@ -48,7 +48,7 @@ const RegisterPage = () => {
                             rules={[
                                 {
                                     required: true,
-                                    message: 'Please input your email!',
+                                    message: 'Vui lòng nhập email!',
                                 },
                             ]}
                         >
@@ -56,12 +56,12 @@ const RegisterPage = () => {
                         </Form.Item>
 
                         <Form.Item
-                            label="Password"
+                            label="Mật khẩu"
                             name="password"
                             rules={[
                                 {
                                     required: true,
-                                    message: 'Please input your password!',
+                                    message: 'Vui lòng nhập mật khẩu!',
                                 },
                             ]}
                         >
@@ -69,12 +69,12 @@ const RegisterPage = () => {
                         </Form.Item>
 
                         <Form.Item
-                            label="Name"
+                            label="Tên hiển thị"
                             name="name"
                             rules={[
                                 {
                                     required: true,
-                                    message: 'Please input your name!',
+                                    message: 'Vui lòng nhập tên hiển thị!',
                                 },
                             ]}
                         >
@@ -83,7 +83,7 @@ const RegisterPage = () => {
 
                         <Form.Item>
                             <Button type="primary" htmlType="submit">
-                                Submit
+                                Đăng ký
                             </Button>
                         </Form.Item>
                     </Form>

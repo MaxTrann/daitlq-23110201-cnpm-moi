@@ -17,21 +17,23 @@ const LoginPage = () => {
         if (res && res.EC === 0) {
             localStorage.setItem("access_token", res.access_token)
             notification.success({
-                message: "LOGIN USER",
-                description: "Success"
+                message: "Đăng nhập",
+                description: "Đăng nhập thành công"
             });
             setAuth({
                 isAuthenticated: true,
                 user: {
+                    id: res?.user?.id ?? "",
                     email: res?.user?.email ?? "",
-                    name: res?.user?.name ?? ""
+                    name: res?.user?.name ?? "",
+                    role: res?.user?.role ?? ""
                 }
             })
-            navigate("/");
+            navigate(res?.user?.role === "Admin" ? "/user" : "/home");
         } else {
             notification.error({
-                message: "LOGIN USER",
-                description: res?.EM ?? "error"
+                message: "Đăng nhập",
+                description: res?.EM ?? "Có lỗi xảy ra khi đăng nhập"
             })
         }
     };
@@ -45,7 +47,7 @@ const LoginPage = () => {
                     border: "1px solid #ccc",
                     borderRadius: "5px"
                 }}>
-                    <legend>Đăng Nhập</legend>
+                    <legend>Đăng nhập</legend>
                     <Form
                         name="basic"
                         onFinish={onFinish}
@@ -58,7 +60,7 @@ const LoginPage = () => {
                             rules={[
                                 {
                                     required: true,
-                                    message: 'Please input your email!',
+                                    message: 'Vui lòng nhập email!',
                                 },
                             ]}
                         >
@@ -66,12 +68,12 @@ const LoginPage = () => {
                         </Form.Item>
 
                         <Form.Item
-                            label="Password"
+                            label="Mật khẩu"
                             name="password"
                             rules={[
                                 {
                                     required: true,
-                                    message: 'Please input your password!',
+                                    message: 'Vui lòng nhập mật khẩu!',
                                 },
                             ]}
                         >
@@ -80,7 +82,7 @@ const LoginPage = () => {
 
                         <Form.Item>
                             <Button type="primary" htmlType="submit">
-                                Login
+                                Đăng nhập
                             </Button>
                         </Form.Item>
                     </Form>

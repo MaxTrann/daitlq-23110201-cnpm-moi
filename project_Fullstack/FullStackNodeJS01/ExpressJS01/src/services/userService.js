@@ -3,6 +3,9 @@ const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const saltRounds = 10;
+const jwtExpireValue = /^\d+$/.test(process.env.JWT_EXPIRE || "")
+    ? Number(process.env.JWT_EXPIRE)
+    : process.env.JWT_EXPIRE;
 
 const createUserService = async (name, email, password) => {
     try {
@@ -44,15 +47,17 @@ const loginService = async (email, password) => {
             } else {
                 //create an access token
                 const payload = {
+                    id: user._id,
                     email: user.email,
-                    name: user.name
+                    name: user.name,
+                    role: user.role
                 }
 
                 const access_token = jwt.sign(
                     payload,
                     process.env.JWT_SECRET,
                     {
-                        expiresIn: process.env.JWT_EXPIRE
+                        expiresIn: jwtExpireValue
                     }
                 )
 
@@ -60,8 +65,10 @@ const loginService = async (email, password) => {
                     EC: 0,
                     access_token,
                     user: {
+                        id: user._id,
                         email: user.email,
-                        name: user.name
+                        name: user.name,
+                        role: user.role
                     }
                 };
             }

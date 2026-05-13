@@ -4,7 +4,12 @@ const userSchema = new mongoose.Schema({
     name: String,
     email: String,
     password: String,
-    role: String,
+    role: {
+        type: String,
+        default: "User"
+    },
+}, {
+    timestamps: true
 });
 
 const User = mongoose.model('users', userSchema);
