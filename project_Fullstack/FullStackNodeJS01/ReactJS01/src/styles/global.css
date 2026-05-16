@@ -1,30 +1,200 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --pc-blue: #0067b8;
+  --pc-blue-dark: #004a85;
+  --pc-blue-light: #e8f4fc;
+  --pc-blue-hover: #005299;
+  --pc-red: #e31e24;
+  --pc-yellow: #ffc400;
+  --pc-gray-bg: #f4f6f8;
+  --pc-border: #e5e7eb;
+  --pc-text: #333333;
+  --pc-text-muted: #666666;
+}
 
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 html {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
 
 body {
-    margin: 0;
-    min-width: 320px;
-    background: #f8fafc;
-    color: #0f172a;
-    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  margin: 0;
+  min-width: 320px;
+  background: var(--pc-gray-bg);
+  color: var(--pc-text);
+  font-family: "Be Vietnam Pro", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 a {
-    text-decoration: none;
+  text-decoration: none;
+  color: inherit;
 }
 
 button {
-    cursor: pointer;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 img {
-    display: block;
-    max-width: 100%;
+  display: block;
+  max-width: 100%;
+}
+
+.pc-container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.pc-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--pc-blue);
+}
+
+.pc-section-title h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--pc-blue-dark);
+  text-transform: uppercase;
+}
+
+.pc-section-title a {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--pc-blue);
+}
+
+.pc-section-title a:hover {
+  text-decoration: underline;
+}
+
+.pc-product-card {
+  background: #fff;
+  border: 1px solid var(--pc-border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.pc-product-card:hover {
+  border-color: var(--pc-blue);
+  box-shadow: 0 4px 16px rgba(0, 103, 184, 0.12);
+}
+
+.pc-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pc-blue);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 16px;
+  transition: background 0.2s;
+}
+
+.pc-btn-primary:hover {
+  background: var(--pc-blue-hover);
+}
+
+.pc-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pc-input-search {
+  flex: 1;
+  border: 2px solid var(--pc-blue);
+  border-radius: 8px 0 0 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  outline: none;
+}
+
+.pc-input-search:focus {
+  border-color: var(--pc-blue-dark);
+}
+
+.hero-swiper .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 1;
+}
+
+.hero-swiper .swiper-pagination-bullet-active {
+  background: #fff;
+  width: 24px;
+  border-radius: 4px;
+}
+
+.hero-swiper .swiper-pagination {
+  bottom: 12px !important;
+}
+
+.pc-filter-panel {
+  background: #fff;
+  border: 1px solid var(--pc-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.pc-breadcrumb {
+  font-size: 13px;
+  color: var(--pc-text-muted);
+}
+
+.pc-breadcrumb a {
+  color: var(--pc-blue);
+}
+
+.pc-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.auth-form .ant-steps .ant-steps-item-process .ant-steps-item-icon {
+  background: var(--pc-blue);
+  border-color: var(--pc-blue);
+}
+
+.auth-form .ant-steps .ant-steps-item-finish .ant-steps-item-icon {
+  background: var(--pc-blue-light);
+  border-color: var(--pc-blue);
+}
+
+.auth-form .ant-steps .ant-steps-item-finish .ant-steps-item-icon > .ant-steps-icon {
+  color: var(--pc-blue);
+}
+
+.auth-form .ant-steps .ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-tail::after {
+  background: var(--pc-blue);
+}
+
+.product-gallery-swiper .swiper-button-next,
+.product-gallery-swiper .swiper-button-prev {
+  color: var(--pc-blue);
+}
+
+.product-gallery-swiper .swiper-pagination-bullet-active {
+  background: var(--pc-blue);
 }

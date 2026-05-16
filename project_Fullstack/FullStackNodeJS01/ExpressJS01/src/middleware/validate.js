@@ -1,0 +1,18 @@
+const { validationResult } = require("express-validator");
+
+const validate = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            EC: 400,
+            EM: "Dữ liệu không hợp lệ",
+            errors: errors.array().map((item) => ({
+                field: item.path,
+                message: item.msg
+            }))
+        });
+    }
+    next();
+};
+
+module.exports = validate;

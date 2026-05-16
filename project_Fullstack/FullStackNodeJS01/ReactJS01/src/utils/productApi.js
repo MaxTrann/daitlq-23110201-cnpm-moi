@@ -3,6 +3,7 @@ import axios from "./axios.customize";
 const getProductsApi = (params = {}) => axios.get("/v1/api/products", { params });
 const getProductDetailApi = (id) => axios.get(`/v1/api/products/${id}`);
 const getCategoriesApi = () => axios.get("/v1/api/categories");
+const getBrandsApi = () => axios.get("/v1/api/brands");
 
 const getAdminProductsApi = (params = {}) => axios.get("/v1/api/admin/products", { params });
 const createProductApi = (data) => axios.post("/v1/api/admin/products", data);
@@ -19,6 +20,7 @@ export {
     getProductsApi,
     getProductDetailApi,
     getCategoriesApi,
+    getBrandsApi,
     getAdminProductsApi,
     createProductApi,
     updateProductApi,

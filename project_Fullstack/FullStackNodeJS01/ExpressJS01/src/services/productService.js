@@ -1,318 +1,63 @@
 const mongoose = require("mongoose");
 const Product = require("../models/product");
 const Category = require("../models/category");
+const MedicineDetail = require("../models/medicineDetail");
+const ProductBatch = require("../models/productBatch");
 const { createSlug } = require("./slugService");
+const { applyDrugDefaults } = require("../constants/medcare");
+const { buildProductProjection } = require("./catalog/productMapper");
 
-const categorySeedData = [
-    {
-        name: "Giày Sneaker",
-        slug: "giay-sneaker",
-        description: "Các mẫu sneaker dễ phối đồ hằng ngày.",
-        isActive: true
-    },
-    {
-        name: "Thời trang",
-        slug: "thoi-trang",
-        description: "Quần áo và phụ kiện theo xu hướng trẻ.",
-        isActive: true
-    },
-    {
-        name: "Phụ kiện",
-        slug: "phu-kien",
-        description: "Các sản phẩm nhỏ gọn, tiện dụng.",
-        isActive: true
-    },
-    {
-        name: "Lifestyle",
-        slug: "lifestyle",
-        description: "Sản phẩm phục vụ cuộc sống năng động.",
-        isActive: true
-    }
+const productPopulate = [
+    { path: "category" },
+    { path: "brandId", select: "name slug logo country" },
+    { path: "medicineDetail" }
 ];
-
-const productSeedData = [
-    {
-        name: "Nike Air Daily",
-        description: "Mẫu sneaker đi học, đi chơi, phối tốt với quần jeans và áo thun. Form gọn, đế êm, phù hợp cho sinh viên.",
-        price: 1490000,
-        salePrice: 1190000,
-        images: [
-            "https://picsum.photos/seed/nike-air-daily-1/900/700",
-            "https://picsum.photos/seed/nike-air-daily-2/900/700",
-            "https://picsum.photos/seed/nike-air-daily-3/900/700"
-        ],
-        stock: 18,
-        sold: 120,
-        categorySlug: "giay-sneaker",
-        isNew: true,
-        isBestSeller: true,
-        isSale: true,
-        isActive: true
-    },
-    {
-        name: "Urban Runner Pro",
-        description: "Giày chạy bộ đế nhẹ, ôm chân, bám tốt, thích hợp cho việc tập luyện và đi bộ hằng ngày.",
-        price: 1790000,
-        salePrice: null,
-        images: [
-            "https://picsum.photos/seed/urban-runner-pro-1/900/700",
-            "https://picsum.photos/seed/urban-runner-pro-2/900/700"
-        ],
-        stock: 10,
-        sold: 84,
-        categorySlug: "giay-sneaker",
-        isNew: true,
-        isBestSeller: false,
-        isSale: false,
-        isActive: true
-    },
-    {
-        name: "Basic Hoodie Campus",
-        description: "Áo hoodie form rộng, chất nỉ mềm, giữ ấm vừa phải cho phòng học máy lạnh và đi học buổi tối.",
-        price: 690000,
-        salePrice: 590000,
-        images: [
-            "https://picsum.photos/seed/basic-hoodie-campus-1/900/700",
-            "https://picsum.photos/seed/basic-hoodie-campus-2/900/700"
-        ],
-        stock: 25,
-        sold: 61,
-        categorySlug: "thoi-trang",
-        isNew: false,
-        isBestSeller: true,
-        isSale: true,
-        isActive: true
-    },
-    {
-        name: "Relaxed Cargo Pants",
-        description: "Quần cargo túi hộp, chất vải dày, phối tốt với sneaker và hoodie, hợp phong cách streetwear cơ bản.",
-        price: 820000,
-        salePrice: null,
-        images: [
-            "https://picsum.photos/seed/relaxed-cargo-pants-1/900/700",
-            "https://picsum.photos/seed/relaxed-cargo-pants-2/900/700"
-        ],
-        stock: 14,
-        sold: 45,
-        categorySlug: "thoi-trang",
-        isNew: false,
-        isBestSeller: false,
-        isSale: false,
-        isActive: true
-    },
-    {
-        name: "Mini Crossbody Bag",
-        description: "Túi đeo chéo nhỏ gọn, đựng iPad mini, sách vở và các đồ dùng cần thiết. Hợp cho đi học và đi cà phê.",
-        price: 450000,
-        salePrice: 390000,
-        images: [
-            "https://picsum.photos/seed/mini-crossbody-bag-1/900/700",
-            "https://picsum.photos/seed/mini-crossbody-bag-2/900/700"
-        ],
-        stock: 35,
-        sold: 93,
-        categorySlug: "phu-kien",
-        isNew: true,
-        isBestSeller: true,
-        isSale: true,
-        isActive: true
-    },
-    {
-        name: "Smart Bottle 650ml",
-        description: "Bình nước giữ lạnh có tay xách, phù hợp cho việc đi học, đi tập và sử dụng cả ngày.",
-        price: 320000,
-        salePrice: null,
-        images: [
-            "https://picsum.photos/seed/smart-bottle-650-1/900/700",
-            "https://picsum.photos/seed/smart-bottle-650-2/900/700"
-        ],
-        stock: 40,
-        sold: 51,
-        categorySlug: "lifestyle",
-        isNew: false,
-        isBestSeller: false,
-        isSale: false,
-        isActive: true
-    },
-    {
-        name: "Daily Office Backpack",
-        description: "Balo ngăn chống sốc cho laptop 15 inch, ngăn phụ cho sạc, chuột, sách vở. Màu sắc trung tính dễ dùng.",
-        price: 980000,
-        salePrice: 850000,
-        images: [
-            "https://picsum.photos/seed/daily-office-backpack-1/900/700",
-            "https://picsum.photos/seed/daily-office-backpack-2/900/700",
-            "https://picsum.photos/seed/daily-office-backpack-3/900/700"
-        ],
-        stock: 7,
-        sold: 76,
-        categorySlug: "phu-kien",
-        isNew: false,
-        isBestSeller: true,
-        isSale: true,
-        isActive: true
-    },
-    {
-        name: "Slip-On Weekend",
-        description: "Giày slip-on dễ đi nhanh, phù hợp cho các chuyến đi ngắn, chần đế êm và phong cách tối giản.",
-        price: 890000,
-        salePrice: 760000,
-        images: [
-            "https://picsum.photos/seed/slip-on-weekend-1/900/700",
-            "https://picsum.photos/seed/slip-on-weekend-2/900/700"
-        ],
-        stock: 0,
-        sold: 68,
-        categorySlug: "giay-sneaker",
-        isNew: false,
-        isBestSeller: false,
-        isSale: true,
-        isActive: true
-    },
-    {
-        name: "Desk Light Minimal",
-        description: "Đèn học tập thiết kế gọn, ánh sáng dễ chịu, phù hợp cho góc học bài và bàn làm việc tại nhà.",
-        price: 560000,
-        salePrice: null,
-        images: [
-            "https://picsum.photos/seed/desk-light-minimal-1/900/700",
-            "https://picsum.photos/seed/desk-light-minimal-2/900/700"
-        ],
-        stock: 12,
-        sold: 28,
-        categorySlug: "lifestyle",
-        isNew: true,
-        isBestSeller: false,
-        isSale: false,
-        isActive: true
-    },
-    {
-        name: "Oversize Tee Mono",
-        description: "Áo thun oversize in chữ tối giản, vải dày, mặc mát, hợp để phối với cargo và sneaker.",
-        price: 350000,
-        salePrice: 299000,
-        images: [
-            "https://picsum.photos/seed/oversize-tee-mono-1/900/700",
-            "https://picsum.photos/seed/oversize-tee-mono-2/900/700"
-        ],
-        stock: 31,
-        sold: 59,
-        categorySlug: "thoi-trang",
-        isNew: true,
-        isBestSeller: true,
-        isSale: true,
-        isActive: true
-    }
-];
-
-const buildProductProjection = (product) => {
-    const item = product.toObject ? product.toObject() : product;
-
-    return {
-        ...item,
-        currentPrice: item.salePrice || item.price
-    };
-};
 
 const buildCategoryFilter = async (categoryInput, isAdmin = false) => {
     if (!categoryInput) {
         return null;
     }
-
     if (mongoose.Types.ObjectId.isValid(categoryInput)) {
         return categoryInput;
     }
-
     const category = await Category.findOne({
         slug: categoryInput,
         ...(isAdmin ? {} : { isActive: true })
     });
-
     return category?._id || "__EMPTY__";
 };
 
-const ensureCategorySeedData = async () => {
-    const currentCategories = await Category.find({});
-    if (currentCategories.length === 0) {
-        await Category.insertMany(categorySeedData);
-        return await Category.find({});
+const upsertMedicineDetail = async (productId, payload, productType) => {
+    if (!payload) {
+        return;
     }
-
-    for (const item of categorySeedData) {
-        const existing = currentCategories.find((category) => category.slug === item.slug);
-        if (!existing) {
-            await Category.create(item);
-        }
-    }
-
-    return await Category.find({});
-};
-
-const migrateOldProductsToCategoryRefs = async (categories) => {
-    const products = await Product.find({});
-    for (const product of products) {
-        let shouldUpdate = false;
-        const updatePayload = {};
-
-        if (!product.slug) {
-            updatePayload.slug = createSlug(product.name);
-            shouldUpdate = true;
-        }
-
-        if (typeof product.category === "string") {
-            const category = categories.find((item) => item.slug === product.category);
-            if (category) {
-                updatePayload.category = category._id;
-                shouldUpdate = true;
-            }
-        }
-
-        if (typeof product.isActive !== "boolean") {
-            updatePayload.isActive = true;
-            shouldUpdate = true;
-        }
-
-        if (shouldUpdate) {
-            await Product.findByIdAndUpdate(product._id, updatePayload);
-        }
-    }
-};
-
-const ensureProductSeedData = async () => {
-    const categories = await ensureCategorySeedData();
-    await migrateOldProductsToCategoryRefs(categories);
-
-    const productCount = await Product.countDocuments();
-    if (productCount > 0) {
+    const hasMedicineType = ["medicine_otc", "medicine_rx", "functional_food"].includes(productType);
+    if (!hasMedicineType && !payload.activeIngredient) {
         return;
     }
 
-    const categoryMap = categories.reduce((accumulator, item) => {
-        accumulator[item.slug] = item;
-        return accumulator;
-    }, {});
-
-    const normalizedProducts = productSeedData.map((item) => ({
-        name: item.name,
-        slug: createSlug(item.name),
-        description: item.description,
-        price: item.price,
-        salePrice: item.salePrice,
-        images: item.images,
-        stock: item.stock,
-        sold: item.sold,
-        category: categoryMap[item.categorySlug]._id,
-        isNew: item.isNew,
-        isBestSeller: item.isBestSeller,
-        isSale: item.isSale,
-        isActive: item.isActive
-    }));
-
-    await Product.insertMany(normalizedProducts);
+    await MedicineDetail.findOneAndUpdate(
+        { productId },
+        {
+            productId,
+            activeIngredient: payload.activeIngredient || "",
+            registrationNo: payload.registrationNo || "",
+            dosageForm: payload.dosageForm || "other",
+            concentration: payload.concentration || "",
+            indications: payload.indications || "",
+            usage: payload.usage || "",
+            contraindications: payload.contraindications || "",
+            sideEffects: payload.sideEffects || "",
+            warnings: payload.warnings || "",
+            storage: payload.storage || "",
+            prescriptionRequired: productType === "medicine_rx"
+        },
+        { upsert: true, new: true }
+    );
 };
 
 const getCategoriesService = async () => {
-    return await Category.find({ isActive: true }).sort({ name: 1 });
+    return Category.find({ isActive: true }).sort({ sortOrder: 1, name: 1 });
 };
 
 const getAdminCategoriesService = async (query) => {
@@ -326,100 +71,108 @@ const getAdminCategoriesService = async (query) => {
     if (query.status === "inactive") {
         filters.isActive = false;
     }
-
-    return await Category.find(filters).sort({ createdAt: -1 });
+    if (query.categoryKind) {
+        filters.categoryKind = query.categoryKind;
+    }
+    return Category.find(filters).sort({ sortOrder: 1, createdAt: -1 });
 };
 
-const getCategoryByIdService = async (id) => {
-    return await Category.findById(id);
-};
+const getCategoryByIdService = async (id) => Category.findById(id);
 
 const createCategoryService = async (payload) => {
     const slug = createSlug(payload.slug || payload.name);
     const existing = await Category.findOne({ slug });
     if (existing) {
-        return {
-            success: false,
-            message: "Danh mục đã tồn tại"
-        };
+        return { success: false, message: "Danh mục đã tồn tại" };
     }
-
     const category = await Category.create({
         name: payload.name,
         slug,
         description: payload.description || "",
+        parentId: payload.parentId || null,
+        categoryKind: payload.categoryKind || "medicine",
+        icon: payload.icon || "",
+        sortOrder: payload.sortOrder ?? 0,
         isActive: payload.isActive !== false
     });
-
-    return {
-        success: true,
-        data: category
-    };
+    return { success: true, data: category };
 };
 
 const updateCategoryService = async (id, payload) => {
     const category = await Category.findById(id);
     if (!category) {
-        return {
-            success: false,
-            message: "Danh mục không tồn tại"
-        };
+        return { success: false, message: "Danh mục không tồn tại" };
     }
-
     const slug = createSlug(payload.slug || payload.name || category.name);
     const duplicate = await Category.findOne({ slug, _id: { $ne: id } });
     if (duplicate) {
-        return {
-            success: false,
-            message: "Slug danh mục đã tồn tại"
-        };
+        return { success: false, message: "Slug danh mục đã tồn tại" };
     }
-
     category.name = payload.name ?? category.name;
     category.slug = slug;
     category.description = payload.description ?? category.description;
+    category.parentId = payload.parentId ?? category.parentId;
+    category.categoryKind = payload.categoryKind ?? category.categoryKind;
+    category.icon = payload.icon ?? category.icon;
+    if (payload.sortOrder !== undefined) {
+        category.sortOrder = payload.sortOrder;
+    }
     if (typeof payload.isActive === "boolean") {
         category.isActive = payload.isActive;
     }
     await category.save();
-
-    return {
-        success: true,
-        data: category
-    };
+    return { success: true, data: category };
 };
 
 const deleteCategoryService = async (id) => {
     const category = await Category.findById(id);
     if (!category) {
-        return {
-            success: false,
-            message: "Danh mục không tồn tại"
-        };
+        return { success: false, message: "Danh mục không tồn tại" };
     }
-
     category.isActive = false;
     await category.save();
-
     await Product.updateMany({ category: category._id }, { isActive: false });
+    return { success: true, data: category };
+};
 
-    return {
-        success: true,
-        data: category
-    };
+const applyProductFilters = (query, filters) => {
+    const { keyword, category, minPrice, maxPrice, stockStatus, isSale, sort, productType, drugClass, brand, onlineOnly } = query;
+
+    if (keyword) {
+        filters.$or = [
+            { name: { $regex: keyword, $options: "i" } },
+            { sku: { $regex: keyword, $options: "i" } },
+            { shortDescription: { $regex: keyword, $options: "i" } }
+        ];
+    }
+
+    if (productType) {
+        filters.productType = productType;
+    }
+    if (drugClass) {
+        filters.drugClass = drugClass;
+    }
+    if (onlineOnly === "true" || onlineOnly === true) {
+        filters.allowedOnlineSale = true;
+    }
+    if (isSale === "true" || isSale === true) {
+        filters.isSale = true;
+    }
+    if (stockStatus === "in-stock") {
+        filters.stock = { $gt: 0 };
+    }
+    if (stockStatus === "out-of-stock") {
+        filters.stock = 0;
+    }
+
+    return { minPrice, maxPrice, sort, brand };
 };
 
 const getProductsService = async (query) => {
-    const { keyword, category, minPrice, maxPrice, stockStatus, isSale, sort } = query;
-    const filters = {
-        isActive: true
-    };
+    const filters = { isActive: true };
+    const { minPrice, maxPrice, sort, brand } = applyProductFilters(query, filters);
 
-    if (keyword) {
-        filters.name = { $regex: keyword, $options: "i" };
-    }
-
-    const categoryId = await buildCategoryFilter(category, false);
+    const categoryId = await buildCategoryFilter(query.category, false);
     if (categoryId === "__EMPTY__") {
         return [];
     }
@@ -427,30 +180,25 @@ const getProductsService = async (query) => {
         filters.category = categoryId;
     }
 
-    if (isSale === "true" || isSale === true) {
-        filters.isSale = true;
-    }
-
-    if (stockStatus === "in-stock") {
-        filters.stock = { $gt: 0 };
-    }
-
-    if (stockStatus === "out-of-stock") {
-        filters.stock = 0;
+    if (brand) {
+        const Brand = require("../models/brand");
+        const brandDoc = mongoose.Types.ObjectId.isValid(brand)
+            ? await Brand.findById(brand)
+            : await Brand.findOne({ slug: brand, isActive: true });
+        if (!brandDoc) {
+            return [];
+        }
+        filters.brandId = brandDoc._id;
     }
 
     let products = await Product.find(filters)
-        .populate({
-            path: "category",
-            match: { isActive: true }
-        })
+        .populate(productPopulate)
         .sort({ createdAt: -1 });
 
     products = products.filter((product) => {
-        if (!product.category) {
+        if (!product.category || !product.category.isActive) {
             return false;
         }
-
         const currentPrice = product.salePrice || product.price;
         if (minPrice && currentPrice < Number(minPrice)) {
             return false;
@@ -477,25 +225,12 @@ const getProductsService = async (query) => {
             break;
     }
 
-    return products.map((item) => {
-        const product = buildProductProjection(item);
-        return {
-            ...product,
-            category: {
-                _id: product.category._id,
-                name: product.category.name,
-                slug: product.category.slug
-            }
-        };
-    });
+    return products.map((item) => buildProductProjection(item));
 };
 
 const getAdminProductsService = async (query) => {
     const filters = {};
-
-    if (query.keyword) {
-        filters.name = { $regex: query.keyword, $options: "i" };
-    }
+    applyProductFilters(query, filters);
 
     if (query.status === "active") {
         filters.isActive = true;
@@ -512,56 +247,79 @@ const getAdminProductsService = async (query) => {
         filters.category = categoryId;
     }
 
-    return await Product.find(filters)
-        .populate("category")
+    const products = await Product.find(filters)
+        .populate(productPopulate)
         .sort({ createdAt: -1 });
+
+    return products.map((item) => buildProductProjection(item));
 };
 
 const getProductDetailService = async (productId) => {
     const product = await Product.findOne({
         _id: productId,
         isActive: true
-    }).populate({
-        path: "category",
-        match: { isActive: true }
-    });
+    }).populate([
+        { path: "category", match: { isActive: true } },
+        { path: "brandId", select: "name slug logo country" },
+        { path: "medicineDetail" }
+    ]);
 
     if (!product || !product.category) {
         return null;
     }
 
-    const item = buildProductProjection(product);
+    const batches = await ProductBatch.find({
+        productId: product._id,
+        isActive: true,
+        expiryDate: { $gte: new Date() }
+    }).sort({ expiryDate: 1 });
+
     return {
-        ...item,
-        category: {
-            _id: item.category._id,
-            name: item.category.name,
-            slug: item.category.slug
-        }
+        ...buildProductProjection(product),
+        batches
+    };
+};
+
+const normalizeProductPayload = (payload) => {
+    const productType = payload.productType || "medicine_otc";
+    const drugDefaults = applyDrugDefaults(productType);
+
+    return {
+        productType,
+        drugClass: payload.drugClass || drugDefaults.drugClass,
+        allowedOnlineSale: typeof payload.allowedOnlineSale === "boolean"
+            ? payload.allowedOnlineSale
+            : drugDefaults.allowedOnlineSale
     };
 };
 
 const createProductService = async (payload) => {
     const category = await Category.findById(payload.category);
     if (!category) {
-        return {
-            success: false,
-            message: "Danh mục không tồn tại"
-        };
+        return { success: false, message: "Danh mục không tồn tại" };
     }
 
     const slug = createSlug(payload.slug || payload.name);
-    const duplicate = await Product.findOne({ slug });
-    if (duplicate) {
-        return {
-            success: false,
-            message: "Sản phẩm đã tồn tại"
-        };
+    const duplicateSlug = await Product.findOne({ slug });
+    if (duplicateSlug) {
+        return { success: false, message: "Slug sản phẩm đã tồn tại" };
     }
+
+    if (payload.sku) {
+        const duplicateSku = await Product.findOne({ sku: payload.sku });
+        if (duplicateSku) {
+            return { success: false, message: "SKU đã tồn tại" };
+        }
+    }
+
+    const drugMeta = normalizeProductPayload(payload);
 
     const product = await Product.create({
         name: payload.name,
         slug,
+        sku: payload.sku || `MED-${Date.now()}`,
+        barcode: payload.barcode || "",
+        shortDescription: payload.shortDescription || "",
         description: payload.description || "",
         price: payload.price,
         salePrice: payload.salePrice || null,
@@ -569,48 +327,59 @@ const createProductService = async (payload) => {
         stock: payload.stock || 0,
         sold: payload.sold || 0,
         category: payload.category,
+        brandId: payload.brandId || null,
+        unitLabel: payload.unitLabel || "Hộp",
+        packagingDescription: payload.packagingDescription || "",
+        requiresPharmacistAdvice: payload.requiresPharmacistAdvice === true,
         isNew: payload.isNew === true,
         isBestSeller: payload.isBestSeller === true,
         isSale: payload.isSale === true,
-        isActive: payload.isActive !== false
+        isActive: payload.isActive !== false,
+        ...drugMeta
     });
 
-    return {
-        success: true,
-        data: await Product.findById(product._id).populate("category")
-    };
+    await upsertMedicineDetail(product._id, payload.medicineDetail, drugMeta.productType);
+
+    const data = await Product.findById(product._id).populate(productPopulate);
+    return { success: true, data: buildProductProjection(data) };
 };
 
 const updateProductService = async (id, payload) => {
     const product = await Product.findById(id);
     if (!product) {
-        return {
-            success: false,
-            message: "Sản phẩm không tồn tại"
-        };
+        return { success: false, message: "Sản phẩm không tồn tại" };
     }
 
     if (payload.category) {
         const category = await Category.findById(payload.category);
         if (!category) {
-            return {
-                success: false,
-                message: "Danh mục không tồn tại"
-            };
+            return { success: false, message: "Danh mục không tồn tại" };
         }
     }
 
     const slug = createSlug(payload.slug || payload.name || product.name);
-    const duplicate = await Product.findOne({ slug, _id: { $ne: id } });
-    if (duplicate) {
-        return {
-            success: false,
-            message: "Slug sản phẩm đã tồn tại"
-        };
+    const duplicateSlug = await Product.findOne({ slug, _id: { $ne: id } });
+    if (duplicateSlug) {
+        return { success: false, message: "Slug sản phẩm đã tồn tại" };
     }
+
+    if (payload.sku && payload.sku !== product.sku) {
+        const duplicateSku = await Product.findOne({ sku: payload.sku, _id: { $ne: id } });
+        if (duplicateSku) {
+            return { success: false, message: "SKU đã tồn tại" };
+        }
+    }
+
+    const productType = payload.productType || product.productType;
+    const drugMeta = payload.productType
+        ? normalizeProductPayload({ ...payload, productType })
+        : null;
 
     product.name = payload.name ?? product.name;
     product.slug = slug;
+    product.sku = payload.sku ?? product.sku;
+    product.barcode = payload.barcode ?? product.barcode;
+    product.shortDescription = payload.shortDescription ?? product.shortDescription;
     product.description = payload.description ?? product.description;
     product.price = payload.price ?? product.price;
     product.salePrice = payload.salePrice === "" ? null : (payload.salePrice ?? product.salePrice);
@@ -618,6 +387,23 @@ const updateProductService = async (id, payload) => {
     product.stock = payload.stock ?? product.stock;
     product.sold = payload.sold ?? product.sold;
     product.category = payload.category ?? product.category;
+    product.brandId = payload.brandId === "" ? null : (payload.brandId ?? product.brandId);
+    product.unitLabel = payload.unitLabel ?? product.unitLabel;
+    product.packagingDescription = payload.packagingDescription ?? product.packagingDescription;
+
+    if (drugMeta) {
+        product.productType = drugMeta.productType;
+        product.drugClass = payload.drugClass || drugMeta.drugClass;
+        product.allowedOnlineSale = typeof payload.allowedOnlineSale === "boolean"
+            ? payload.allowedOnlineSale
+            : drugMeta.allowedOnlineSale;
+    } else if (typeof payload.allowedOnlineSale === "boolean") {
+        product.allowedOnlineSale = payload.allowedOnlineSale;
+    }
+
+    if (typeof payload.requiresPharmacistAdvice === "boolean") {
+        product.requiresPharmacistAdvice = payload.requiresPharmacistAdvice;
+    }
     if (typeof payload.isNew === "boolean") {
         product.isNew = payload.isNew;
     }
@@ -632,33 +418,23 @@ const updateProductService = async (id, payload) => {
     }
 
     await product.save();
+    await upsertMedicineDetail(product._id, payload.medicineDetail, product.productType);
 
-    return {
-        success: true,
-        data: await Product.findById(product._id).populate("category")
-    };
+    const data = await Product.findById(product._id).populate(productPopulate);
+    return { success: true, data: buildProductProjection(data) };
 };
 
 const deleteProductService = async (id) => {
     const product = await Product.findById(id);
     if (!product) {
-        return {
-            success: false,
-            message: "Sản phẩm không tồn tại"
-        };
+        return { success: false, message: "Sản phẩm không tồn tại" };
     }
-
     product.isActive = false;
     await product.save();
-
-    return {
-        success: true,
-        data: product
-    };
+    return { success: true, data: product };
 };
 
 module.exports = {
-    ensureProductSeedData,
     getCategoriesService,
     getAdminCategoriesService,
     getCategoryByIdService,

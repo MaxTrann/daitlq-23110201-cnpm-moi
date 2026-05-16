@@ -1,60 +1,71 @@
-import { createContext, useEffect, useState } from 'react';
-import axios from '../../util/axios.customize';
+import { createContext, useEffect, useState } from "react";
+import axios from "../../utils/axios.customize";
 
 const defaultAuthState = {
-    isAuthenticated: false,
-    user: {
-        id: "",
-        email: "",
-        name: "",
-        role: ""
-    }
+  isAuthenticated: false,
+  user: {
+    id: "",
+    email: "",
+    name: "",
+    role: "",
+    phone: "",
+    address: "",
+    avatar: "",
+  },
 };
 
 export const AuthContext = createContext({
-    ...defaultAuthState,
-    appLoading: true,
+  ...defaultAuthState,
+  appLoading: true,
 });
 
 export const AuthWrapper = (props) => {
-    const [auth, setAuth] = useState(defaultAuthState);
-    const [appLoading, setAppLoading] = useState(true);
+  const [auth, setAuth] = useState(defaultAuthState);
+  const [appLoading, setAppLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchAccount = async () => {
-            const accessToken = localStorage.getItem("access_token");
-            if (!accessToken) {
-                setAppLoading(false);
-                return;
-            }
+  useEffect(() => {
+    const fetchAccount = async () => {
+      const accessToken = localStorage.getItem("access_token");
+      if (!accessToken) {
+        setAppLoading(false);
+        return;
+      }
 
-            const res = await axios.get('/v1/api/account');
-            if (res && !res.message) {
-                setAuth({
-                    isAuthenticated: true,
-                    user: {
-                        id: res.id ?? "",
-                        email: res.email ?? "",
-                        name: res.name ?? "",
-                        role: res.role ?? ""
-                    }
-                });
-            } else {
-                localStorage.removeItem("access_token");
-                setAuth(defaultAuthState);
-            }
+      const res = await axios.get("/v1/api/account");
+      if (res?.EC === 0 && res?.data) {
+        setAuth({
+          isAuthenticated: true,
+          user: {
+            id: res.data.id ?? "",
+            email: res.data.email ?? "",
+            name: res.data.name ?? "",
+            role: res.data.role ?? "",
+            phone: res.data.phone ?? "",
+            address: res.data.address ?? "",
+            avatar: res.data.avatar ?? "",
+          },
+        });
+      } else {
+        localStorage.removeItem("access_token");
+        setAuth(defaultAuthState);
+      }
 
-            setAppLoading(false);
-        };
+      setAppLoading(false);
+    };
 
-        fetchAccount();
-    }, []);
+    fetchAccount();
+  }, []);
 
-    return (
-        <AuthContext.Provider value={{
-            auth, setAuth, appLoading, setAppLoading
-        }}>
-            {props.children}
-        </AuthContext.Provider>
-    );
-}
+  return (
+    <AuthContext.Provider
+      value={{
+        auth,
+        setAuth,
+        appLoading,
+        setAppLoading,
+      }}
+    >
+      {props.children}
+    </AuthContext.Provider>
+  );
+};

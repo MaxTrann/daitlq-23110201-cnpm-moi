@@ -29,6 +29,10 @@ const ProductFormModal = ({
                     form.setFieldsValue({
                         name: initialValues?.name || "",
                         slug: initialValues?.slug || "",
+                        sku: initialValues?.sku || "",
+                        shortDescription: initialValues?.shortDescription || "",
+                        productType: initialValues?.productType || "medicine_otc",
+                        activeIngredient: initialValues?.medicineDetail?.activeIngredient || "",
                         description: initialValues?.description || "",
                         price: initialValues?.price ?? 0,
                         salePrice: initialValues?.salePrice ?? null,
@@ -51,15 +55,38 @@ const ProductFormModal = ({
                         name="name"
                         rules={[{ required: true, message: "Vui lòng nhập tên sản phẩm" }]}
                     >
-                        <Input placeholder="Ví dụ: Nike Air Daily" />
+                        <Input placeholder="Ví dụ: Paracetamol 500mg" />
                     </Form.Item>
                     <Form.Item label="Slug" name="slug">
                         <Input placeholder="Để trống để tự sinh từ tên" />
                     </Form.Item>
                 </div>
 
-                <Form.Item label="Mô tả" name="description">
-                    <Input.TextArea rows={4} placeholder="Mô tả ngắn cho sản phẩm" />
+                <div className="grid gap-4 md:grid-cols-2">
+                    <Form.Item label="SKU" name="sku" rules={[{ required: true, message: "Nhập SKU" }]}>
+                        <Input placeholder="MED-OTC-001" />
+                    </Form.Item>
+                    <Form.Item label="Loại" name="productType" rules={[{ required: true }]}>
+                        <Select
+                            options={[
+                                { value: "medicine_otc", label: "Thuốc OTC" },
+                                { value: "medicine_rx", label: "Thuốc kê đơn" },
+                                { value: "functional_food", label: "TPCN" },
+                                { value: "medical_device", label: "Thiết bị y tế" },
+                            ]}
+                        />
+                    </Form.Item>
+                </div>
+
+                <Form.Item label="Mô tả ngắn" name="shortDescription">
+                    <Input />
+                </Form.Item>
+                <Form.Item label="Hoạt chất" name="activeIngredient">
+                    <Input />
+                </Form.Item>
+
+                <Form.Item label="Mô tả chi tiết" name="description">
+                    <Input.TextArea rows={4} placeholder="Mô tả đầy đủ" />
                 </Form.Item>
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

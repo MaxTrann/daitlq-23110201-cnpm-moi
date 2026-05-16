@@ -1,14 +1,14 @@
 import { Link } from "react-router-dom";
 
 const variantClasses = {
-    primary: "border border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700 hover:border-emerald-700",
-    secondary: "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
-    outline: "border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50",
-    dark: "border border-slate-900 bg-slate-900 text-white hover:bg-slate-800 hover:border-slate-800",
-    danger: "border border-red-500 bg-red-500 text-white hover:bg-red-600 hover:border-red-600"
+    primary: "border border-[#0067b8] bg-[#0067b8] text-white hover:bg-[#005299] hover:border-[#005299]",
+    secondary: "border border-[#ddd] bg-white text-[#333] hover:bg-[#f4f6f8]",
+    outline: "border border-[#0067b8] bg-white text-[#0067b8] hover:bg-[#e8f4fc]",
+    dark: "border border-[#004a85] bg-[#004a85] text-white hover:bg-[#003366]",
+    danger: "border border-[#e31e24] bg-[#e31e24] text-white hover:bg-[#c41920]"
 };
 
-const baseClasses = "inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60";
+const baseClasses = "inline-flex items-center justify-center rounded-md px-5 py-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[#0067b8]/30 disabled:cursor-not-allowed disabled:opacity-60";
 
 const Button = ({ children, variant = "primary", className = "", to, href, type = "button", ...props }) => {
     const classes = `${baseClasses} ${variantClasses[variant] || variantClasses.primary} ${className}`.trim();

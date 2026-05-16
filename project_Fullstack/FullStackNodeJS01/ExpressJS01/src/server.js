@@ -4,6 +4,7 @@ const express = require('express'); //commonjs
 const configViewEngine = require('./config/viewEngine');
 const apiRoutes = require('./routes/api');
 const connectDB = require('./config/database');
+const { ensureMedCareCatalog } = require('./services/medcare/seedService');
 const { getHomepage } = require('./controllers/homeController');
 const cors = require('cors');
 const app = express(); //cau hinh app la express
@@ -24,6 +25,7 @@ app.use('/v1/api/', apiRoutes);
     try {
         //ket noi database using mongoose
         await connectDB();
+        await ensureMedCareCatalog();
         //lang nghe port trong env
         app.listen(port, () => {
             console.log(`Backend Nodejs App listening on port ${port}`)
