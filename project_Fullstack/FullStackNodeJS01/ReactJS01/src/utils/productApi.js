@@ -1,6 +1,11 @@
 import axios from "./axios.customize";
 
+/** Public catalog — hỗ trợ page & limit để phân trang / lazy load */
 const getProductsApi = (params = {}) => axios.get("/v1/api/products", { params });
+
+/** Trang chủ — carousel ngang: type = best-selling | most-viewed */
+const getHomeProductCarouselApi = (params = {}) =>
+  axios.get("/v1/api/products/home-carousel", { params });
 const getProductDetailApi = (id) => axios.get(`/v1/api/products/${id}`);
 const getCategoriesApi = () => axios.get("/v1/api/categories");
 const getBrandsApi = () => axios.get("/v1/api/brands");
@@ -18,6 +23,7 @@ const deleteCategoryApi = (id) => axios.delete(`/v1/api/admin/categories/${id}`)
 
 export {
     getProductsApi,
+    getHomeProductCarouselApi,
     getProductDetailApi,
     getCategoriesApi,
     getBrandsApi,

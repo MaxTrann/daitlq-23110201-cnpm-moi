@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import HeroSlider from "../components/home/HeroSlider";
 import QuickServices from "../components/home/QuickServices";
 import CategoryShortcut from "../components/home/CategoryShortcut";
+import ProductCarousel from "../components/home/ProductCarousel";
 import ProductSection from "../components/home/ProductSection";
 import LoadingState from "../components/shared/LoadingState";
+import { HOME_CAROUSEL_TYPES } from "../constants/homeCarousel";
 import { getProductsApi } from "../utils/productApi";
+import { parseProductsPageResponse } from "../utils/productPagination";
 
 const HomePage = () => {
   const [sections, setSections] = useState({
     newest: [],
-    bestSeller: [],
     sale: [],
   });
   const [loading, setLoading] = useState(true);
@@ -17,16 +19,17 @@ const HomePage = () => {
   useEffect(() => {
     const fetchHomeProducts = async () => {
       setLoading(true);
-      const [newest, bestSeller, sale] = await Promise.all([
-        getProductsApi({ sort: "newest" }),
-        getProductsApi({ sort: "best-selling" }),
-        getProductsApi({ isSale: true, sort: "newest" }),
+      const [newestRes, saleRes] = await Promise.all([
+        getProductsApi({ sort: "newest", page: 1, limit: 10 }),
+        getProductsApi({ isSale: true, sort: "newest", page: 1, limit: 10 }),
       ]);
 
+      const newest = parseProductsPageResponse(newestRes);
+      const sale = parseProductsPageResponse(saleRes);
+
       setSections({
-        newest: Array.isArray(newest) ? newest.slice(0, 10) : [],
-        bestSeller: Array.isArray(bestSeller) ? bestSeller.slice(0, 10) : [],
-        sale: Array.isArray(sale) ? sale.slice(0, 10) : [],
+        newest: newest.items.slice(0, 10),
+        sale: sale.items.slice(0, 10),
       });
       setLoading(false);
     };
@@ -41,16 +44,23 @@ const HomePage = () => {
         <QuickServices />
         <CategoryShortcut />
 
+        <ProductCarousel
+          title="Bán chạy nhất"
+          type={HOME_CAROUSEL_TYPES.BEST_SELLING}
+          viewAllTo="/products?sort=best-selling"
+        />
+
+        <ProductCarousel
+          title="Xem nhiều nhất"
+          type={HOME_CAROUSEL_TYPES.MOST_VIEWED}
+          viewAllTo="/products?sort=most-viewed"
+        />
+
         {loading ? (
           <LoadingState title="Đang tải sản phẩm..." />
         ) : (
           <>
             <ProductSection title="Sản phẩm mới" products={sections.newest} viewAllTo="/products?sort=newest" />
-            <ProductSection
-              title="Bán chạy nhất"
-              products={sections.bestSeller}
-              viewAllTo="/products?sort=best-selling"
-            />
             <ProductSection title="Khuyến mãi hot" products={sections.sale} viewAllTo="/products?isSale=true" />
           </>
         )}

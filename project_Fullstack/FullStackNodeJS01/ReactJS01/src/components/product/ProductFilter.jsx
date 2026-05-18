@@ -102,6 +102,7 @@ const ProductFilter = ({ filters, categories = [], brands = [], onChange, onRese
       <select value={filters.sort} onChange={(e) => onChange({ sort: e.target.value })} className={inputClass}>
         <option value="newest">Mới nhất</option>
         <option value="best-selling">Bán chạy nhất</option>
+        <option value="most-viewed">Xem nhiều nhất</option>
         <option value="price-asc">Giá tăng dần</option>
         <option value="price-desc">Giá giảm dần</option>
       </select>

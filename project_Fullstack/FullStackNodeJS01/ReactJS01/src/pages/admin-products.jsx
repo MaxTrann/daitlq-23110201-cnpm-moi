@@ -5,6 +5,7 @@ import ProductFormModal from "../components/admin/ProductFormModal";
 import StatusBadge from "../components/shared/StatusBadge";
 import { createProductApi, deleteProductApi, getAdminCategoriesApi, getAdminProductsApi, updateProductApi } from "../utils/productApi";
 import { formatCurrency } from "../utils/format";
+import { isAllowedUnitLabel } from "../constants/productUnits";
 
 const normalizeProductPayload = (values) => {
   const payload = {
@@ -26,6 +27,8 @@ const normalizeProductPayload = (values) => {
     productType: values.productType || "medicine_otc",
     requiresPharmacistAdvice: Boolean(values.requiresPharmacistAdvice),
     allowedOnlineSale: values.allowedOnlineSale !== false,
+    unitLabel: isAllowedUnitLabel(values.unitLabel) ? values.unitLabel.trim() : "Hộp",
+    packagingDescription: values.packagingDescription?.trim() || "",
   };
 
   if (values.activeIngredient) {
@@ -157,6 +160,19 @@ const AdminProductsPage = () => {
         dataIndex: ["category", "name"],
       },
       {
+        title: "Đơn vị",
+        dataIndex: "unitLabel",
+        width: 90,
+        render: (value, record) => (
+          <div>
+            <p className="font-medium text-slate-800">{value || "—"}</p>
+            {record.packagingDescription && (
+              <p className="text-xs text-slate-500">{record.packagingDescription}</p>
+            )}
+          </div>
+        ),
+      },
+      {
         title: "Giá gốc",
         dataIndex: "price",
         render: (value) => formatCurrency(value),
@@ -181,6 +197,9 @@ const AdminProductsPage = () => {
             <StatusBadge tone={record.isActive ? "success" : "danger"}>{record.isActive ? "Đang bán" : "Ngừng bán"}</StatusBadge>
             {record.isSale && <StatusBadge tone="warning">Khuyến mãi</StatusBadge>}
             {record.isBestSeller && <StatusBadge tone="info">Bán chạy</StatusBadge>}
+            {record.requiresPharmacistAdvice && (
+              <StatusBadge tone="warning">Tư vấn dược sĩ</StatusBadge>
+            )}
           </Space>
         ),
       },

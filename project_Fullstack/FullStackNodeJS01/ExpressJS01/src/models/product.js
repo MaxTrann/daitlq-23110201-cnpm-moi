@@ -55,6 +55,11 @@ const productSchema = new mongoose.Schema({
         default: 0,
         min: 0
     },
+    viewCount: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
     category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'categories',
@@ -114,6 +119,8 @@ const productSchema = new mongoose.Schema({
 
 productSchema.index({ category: 1, isActive: 1 });
 productSchema.index({ productType: 1, drugClass: 1 });
+productSchema.index({ sold: -1, isActive: 1 });
+productSchema.index({ viewCount: -1, isActive: 1 });
 productSchema.index({ name: 'text', sku: 'text', shortDescription: 'text' });
 
 productSchema.virtual('medicineDetail', {

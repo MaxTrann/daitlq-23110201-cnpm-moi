@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { notification } from "antd";
 import ProductDetail from "../components/product/ProductDetail";
+import ProductDescriptionSection from "../components/product/ProductDescriptionSection";
 import SimilarProducts from "../components/product/SimilarProducts";
 import LoadingState from "../components/shared/LoadingState";
 import { getProductDetailApi, getProductsApi } from "../utils/productApi";
@@ -43,8 +44,9 @@ const ProductDetailPage = () => {
         sort: "best-selling",
       });
 
-      if (Array.isArray(res)) {
-        setSimilarProducts(res.filter((item) => item._id !== product._id).slice(0, 5));
+      const items = Array.isArray(res) ? res : res?.items ?? [];
+      if (items.length) {
+        setSimilarProducts(items.filter((item) => item._id !== product._id).slice(0, 5));
       }
     };
 
@@ -77,6 +79,7 @@ const ProductDetailPage = () => {
 
       <div className="pc-container space-y-8 py-6">
         <ProductDetail product={product} quantity={quantity} onQuantityChange={setQuantity} />
+        <ProductDescriptionSection product={product} />
         <SimilarProducts products={similarProducts} />
       </div>
     </div>

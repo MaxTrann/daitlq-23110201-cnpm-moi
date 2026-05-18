@@ -70,6 +70,7 @@ const seedProducts = async (categoryMap, brandMap) => {
             images: item.images || [],
             stock: item.stock ?? 0,
             sold: item.sold ?? 0,
+            viewCount: item.viewCount ?? Math.max((item.sold ?? 0) * 3, 100),
             category: category._id,
             brandId: brand?._id || null,
             productType: item.productType,

@@ -17,6 +17,7 @@ const {
 } = require('../controllers/profileController');
 const {
     getProducts,
+    getHomeProductCarousel,
     getAdminProducts,
     getProductDetail,
     createProduct,
@@ -87,6 +88,7 @@ routerAPI.get("/account", delay, getAccount);
 
 // Catalog (public via auth middleware whitelist)
 routerAPI.get("/products", getProducts);
+routerAPI.get("/products/home-carousel", getHomeProductCarousel);
 routerAPI.get("/products/:id", getProductDetail);
 routerAPI.get("/categories", getCategories);
 routerAPI.get("/categories/:id", getCategoryById);

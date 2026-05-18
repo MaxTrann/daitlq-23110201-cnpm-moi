@@ -1,4 +1,11 @@
+import { useMemo } from "react";
 import { Form, Input, InputNumber, Modal, Select, Switch } from "antd";
+import {
+    PRODUCT_UNIT_OPTIONS,
+    buildPackagingOptions,
+    buildProductUnitOptions,
+} from "../../constants/productUnits";
+import RichTextEditor from "./RichTextEditor";
 
 const ProductFormModal = ({
     open,
@@ -9,6 +16,71 @@ const ProductFormModal = ({
     confirmLoading
 }) => {
     const [form] = Form.useForm();
+    const unitLabel = Form.useWatch("unitLabel", form);
+    const packagingDescription = Form.useWatch("packagingDescription", form);
+
+    const unitOptions = useMemo(
+        () => buildProductUnitOptions(initialValues?.unitLabel),
+        [initialValues?.unitLabel]
+    );
+
+    const packagingOptions = useMemo(
+        () =>
+            buildPackagingOptions(
+                unitLabel || initialValues?.unitLabel,
+                packagingDescription || initialValues?.packagingDescription
+            ),
+        [unitLabel, packagingDescription, initialValues?.unitLabel, initialValues?.packagingDescription]
+    );
+
+    const defaultFormValues = useMemo(
+        () => ({
+            name: "",
+            slug: "",
+            sku: "",
+            shortDescription: "",
+            productType: "medicine_otc",
+            activeIngredient: "",
+            description: "",
+            price: 0,
+            salePrice: null,
+            images: "",
+            stock: 0,
+            sold: 0,
+            category: undefined,
+            isNew: false,
+            isBestSeller: false,
+            isSale: false,
+            isActive: true,
+            requiresPharmacistAdvice: false,
+            unitLabel: "Hộp",
+            packagingDescription: undefined,
+        }),
+        []
+    );
+
+    const mapProductToForm = (product) => ({
+        name: product?.name || "",
+        slug: product?.slug || "",
+        sku: product?.sku || "",
+        shortDescription: product?.shortDescription || "",
+        productType: product?.productType || "medicine_otc",
+        activeIngredient: product?.medicineDetail?.activeIngredient || "",
+        description: product?.description || "",
+        price: product?.price ?? 0,
+        salePrice: product?.salePrice ?? null,
+        images: product?.images?.join("\n") || "",
+        stock: product?.stock ?? 0,
+        sold: product?.sold ?? 0,
+        category: product?.category?._id || product?.category || undefined,
+        isNew: product?.isNew ?? false,
+        isBestSeller: product?.isBestSeller ?? false,
+        isSale: product?.isSale ?? false,
+        isActive: product?.isActive ?? true,
+        requiresPharmacistAdvice: product?.requiresPharmacistAdvice ?? false,
+        unitLabel: product?.unitLabel || "Hộp",
+        packagingDescription: product?.packagingDescription || undefined,
+    });
 
     return (
         <Modal
@@ -22,29 +94,15 @@ const ProductFormModal = ({
             title={initialValues?._id ? "Cập nhật sản phẩm" : "Thêm sản phẩm"}
             okText={initialValues?._id ? "Lưu thay đổi" : "Tạo sản phẩm"}
             cancelText="Hủy"
-            width={860}
-            destroyOnHidden
+            width={960}
+            destroyOnClose
             afterOpenChange={(visible) => {
                 if (visible) {
-                    form.setFieldsValue({
-                        name: initialValues?.name || "",
-                        slug: initialValues?.slug || "",
-                        sku: initialValues?.sku || "",
-                        shortDescription: initialValues?.shortDescription || "",
-                        productType: initialValues?.productType || "medicine_otc",
-                        activeIngredient: initialValues?.medicineDetail?.activeIngredient || "",
-                        description: initialValues?.description || "",
-                        price: initialValues?.price ?? 0,
-                        salePrice: initialValues?.salePrice ?? null,
-                        images: initialValues?.images?.join("\n") || "",
-                        stock: initialValues?.stock ?? 0,
-                        sold: initialValues?.sold ?? 0,
-                        category: initialValues?.category?._id || initialValues?.category || undefined,
-                        isNew: initialValues?.isNew ?? false,
-                        isBestSeller: initialValues?.isBestSeller ?? false,
-                        isSale: initialValues?.isSale ?? false,
-                        isActive: initialValues?.isActive ?? true
-                    });
+                    form.setFieldsValue(
+                        initialValues?._id ? mapProductToForm(initialValues) : defaultFormValues
+                    );
+                } else {
+                    form.resetFields();
                 }
             }}
         >
@@ -78,15 +136,47 @@ const ProductFormModal = ({
                     </Form.Item>
                 </div>
 
-                <Form.Item label="Mô tả ngắn" name="shortDescription">
-                    <Input />
-                </Form.Item>
+                <div className="grid gap-4 md:grid-cols-2">
+                    <Form.Item
+                        label="Đơn vị bán"
+                        name="unitLabel"
+                        rules={[{ required: true, message: "Vui lòng chọn đơn vị" }]}
+                        tooltip="Hiển thị dưới tên sản phẩm trên danh sách cửa hàng"
+                    >
+                        <Select
+                            placeholder="Chọn đơn vị"
+                            options={unitOptions.length ? unitOptions : PRODUCT_UNIT_OPTIONS}
+                            showSearch
+                            optionFilterProp="label"
+                            onChange={() => form.setFieldValue("packagingDescription", undefined)}
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="Quy cách đóng gói"
+                        name="packagingDescription"
+                        tooltip="Hiển thị tại mục Quy cách trên trang chi tiết sản phẩm"
+                    >
+                        <Select
+                            allowClear
+                            placeholder={unitLabel ? `Chọn quy cách (${unitLabel})` : "Chọn quy cách đóng gói"}
+                            options={packagingOptions}
+                            showSearch
+                            optionFilterProp="label"
+                            disabled={!unitLabel}
+                        />
+                    </Form.Item>
+                </div>
                 <Form.Item label="Hoạt chất" name="activeIngredient">
                     <Input />
                 </Form.Item>
 
-                <Form.Item label="Mô tả chi tiết" name="description">
-                    <Input.TextArea rows={4} placeholder="Mô tả đầy đủ" />
+                <Form.Item
+                    label="Mô tả sản phẩm"
+                    name="description"
+                    tooltip="Soạn thảo như Word — in đậm, danh sách, bảng, chèn ảnh (hiển thị ở section Mô tả sản phẩm)"
+                    getValueFromEvent={(value) => value}
+                >
+                    <RichTextEditor key={initialValues?._id || "new-product"} />
                 </Form.Item>
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -134,7 +224,7 @@ const ProductFormModal = ({
                     <Input.TextArea rows={5} placeholder="Mỗi dòng là một URL ảnh" />
                 </Form.Item>
 
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                     <Form.Item label="Sản phẩm mới" name="isNew" valuePropName="checked">
                         <Switch />
                     </Form.Item>
@@ -145,6 +235,14 @@ const ProductFormModal = ({
                         <Switch />
                     </Form.Item>
                     <Form.Item label="Đang bán" name="isActive" valuePropName="checked">
+                        <Switch />
+                    </Form.Item>
+                    <Form.Item
+                        label="Cần tư vấn dược sĩ"
+                        name="requiresPharmacistAdvice"
+                        valuePropName="checked"
+                        tooltip="Hiển thị nhãn trên thẻ sản phẩm, khách nên liên hệ dược sĩ trước khi mua"
+                    >
                         <Switch />
                     </Form.Item>
                 </div>

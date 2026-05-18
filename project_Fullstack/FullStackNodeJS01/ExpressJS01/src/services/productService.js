@@ -168,7 +168,47 @@ const applyProductFilters = (query, filters) => {
     return { minPrice, maxPrice, sort, brand };
 };
 
-const getProductsService = async (query) => {
+const DEFAULT_PAGE_LIMIT = 12;
+const MAX_PAGE_LIMIT = 48;
+
+const sortProducts = (products, sort) => {
+    switch (sort) {
+        case "best-selling":
+            products.sort((a, b) => b.sold - a.sold);
+            break;
+        case "price-asc":
+            products.sort((a, b) => (a.salePrice || a.price) - (b.salePrice || b.price));
+            break;
+        case "price-desc":
+            products.sort((a, b) => (b.salePrice || b.price) - (a.salePrice || a.price));
+            break;
+        case "most-viewed":
+            products.sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
+            break;
+        case "newest":
+        default:
+            products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            break;
+    }
+    return products;
+};
+
+const filterProductsByPriceAndCategory = (products, minPrice, maxPrice) =>
+    products.filter((product) => {
+        if (!product.category || !product.category.isActive) {
+            return false;
+        }
+        const currentPrice = product.salePrice || product.price;
+        if (minPrice && currentPrice < Number(minPrice)) {
+            return false;
+        }
+        if (maxPrice && currentPrice > Number(maxPrice)) {
+            return false;
+        }
+        return true;
+    });
+
+const buildPublicProductList = async (query) => {
     const filters = { isActive: true };
     const { minPrice, maxPrice, sort, brand } = applyProductFilters(query, filters);
 
@@ -195,37 +235,74 @@ const getProductsService = async (query) => {
         .populate(productPopulate)
         .sort({ createdAt: -1 });
 
-    products = products.filter((product) => {
-        if (!product.category || !product.category.isActive) {
-            return false;
-        }
-        const currentPrice = product.salePrice || product.price;
-        if (minPrice && currentPrice < Number(minPrice)) {
-            return false;
-        }
-        if (maxPrice && currentPrice > Number(maxPrice)) {
-            return false;
-        }
-        return true;
-    });
+    products = filterProductsByPriceAndCategory(products, minPrice, maxPrice);
+    return sortProducts(products, sort);
+};
 
-    switch (sort) {
-        case "best-selling":
-            products.sort((a, b) => b.sold - a.sold);
-            break;
-        case "price-asc":
-            products.sort((a, b) => (a.salePrice || a.price) - (b.salePrice || b.price));
-            break;
-        case "price-desc":
-            products.sort((a, b) => (b.salePrice || b.price) - (a.salePrice || a.price));
-            break;
-        case "newest":
-        default:
-            products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            break;
+const paginateProductList = (products, query) => {
+    const wantsPagination = query.page !== undefined && query.page !== null && String(query.page).trim() !== "";
+
+    if (!wantsPagination) {
+        return products.map((item) => buildProductProjection(item));
     }
 
-    return products.map((item) => buildProductProjection(item));
+    const page = Math.max(1, parseInt(query.page, 10) || 1);
+    const limit = Math.min(
+        MAX_PAGE_LIMIT,
+        Math.max(1, parseInt(query.limit, 10) || DEFAULT_PAGE_LIMIT)
+    );
+    const total = products.length;
+    const start = (page - 1) * limit;
+    const items = products.slice(start, start + limit).map((item) => buildProductProjection(item));
+
+    return {
+        items,
+        page,
+        limit,
+        total,
+        totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+        hasMore: start + limit < total
+    };
+};
+
+const getProductsService = async (query) => {
+    const products = await buildPublicProductList(query);
+    return paginateProductList(products, query);
+};
+
+const HOME_CAROUSEL_MAX_TOTAL = 10;
+const HOME_CAROUSEL_DEFAULT_LIMIT = 5;
+
+const getHomeProductCarouselService = async (query) => {
+    const type = query.type === "most-viewed" ? "most-viewed" : "best-selling";
+    const page = Math.max(1, parseInt(query.page, 10) || 1);
+    const limit = Math.min(
+        HOME_CAROUSEL_MAX_TOTAL,
+        Math.max(1, parseInt(query.limit, 10) || HOME_CAROUSEL_DEFAULT_LIMIT)
+    );
+
+    const sortOption = type === "most-viewed" ? { viewCount: -1, sold: -1 } : { sold: -1, viewCount: -1 };
+
+    let products = await Product.find({ isActive: true })
+        .populate(productPopulate)
+        .sort(sortOption)
+        .limit(HOME_CAROUSEL_MAX_TOTAL);
+
+    products = products.filter((product) => product.category && product.category.isActive);
+
+    const total = products.length;
+    const start = (page - 1) * limit;
+    const items = products.slice(start, start + limit).map((item) => buildProductProjection(item));
+
+    return {
+        type,
+        items,
+        page,
+        limit,
+        total,
+        totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+        hasMore: start + limit < total
+    };
 };
 
 const getAdminProductsService = async (query) => {
@@ -268,6 +345,10 @@ const getProductDetailService = async (productId) => {
         return null;
     }
 
+    await Product.findByIdAndUpdate(product._id, { $inc: { viewCount: 1 } });
+    const projected = buildProductProjection(product);
+    projected.viewCount = (projected.viewCount ?? 0) + 1;
+
     const batches = await ProductBatch.find({
         productId: product._id,
         isActive: true,
@@ -275,7 +356,7 @@ const getProductDetailService = async (productId) => {
     }).sort({ expiryDate: 1 });
 
     return {
-        ...buildProductProjection(product),
+        ...projected,
         batches
     };
 };
@@ -442,6 +523,7 @@ module.exports = {
     updateCategoryService,
     deleteCategoryService,
     getProductsService,
+    getHomeProductCarouselService,
     getAdminProductsService,
     getProductDetailService,
     createProductService,

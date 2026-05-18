@@ -11,6 +11,7 @@ const publicRouteMatchers = [
     { method: "POST", exact: "/auth/verify-reset-otp" },
     { method: "POST", exact: "/auth/reset-password" },
     { method: "GET", exact: "/products" },
+    { method: "GET", exact: "/products/home-carousel" },
     { method: "GET", exact: "/categories" },
     { method: "GET", exact: "/brands" },
     { method: "GET", pattern: /^\/products\/[^/]+$/ },

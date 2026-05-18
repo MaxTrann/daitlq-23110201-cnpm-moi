@@ -7,6 +7,7 @@ const ProductCard = ({ product }) => {
   const currentPrice = salePrice || price;
   const discount = formatDiscountPercent(price, salePrice);
   const canBuyOnline = product?.allowedOnlineSale !== false;
+  const needsPharmacistAdvice = product?.requiresPharmacistAdvice === true;
   const outOfStock = !product?.stock;
 
   return (
@@ -46,17 +47,26 @@ const ProductCard = ({ product }) => {
             )}
           </div>
 
-          <Link
-            to={`/products/${product?._id}`}
-            className={`mt-2 block w-full rounded-md py-2 text-center text-xs font-semibold transition ${
-              outOfStock
-                ? "cursor-not-allowed bg-[#eee] text-[#999]"
-                : "bg-[#0067b8] text-white hover:bg-[#005299]"
-            }`}
-            onClick={(e) => outOfStock && e.preventDefault()}
-          >
-            {outOfStock ? "Hết hàng" : canBuyOnline ? "Chọn mua" : "Tra cứu"}
-          </Link>
+          {needsPharmacistAdvice && !outOfStock ? (
+            <Link
+              to={`/products/${product?._id}`}
+              className="mt-2 block w-full rounded-md bg-[#fff8e6] py-2 text-center text-xs font-semibold text-[#d48806] transition hover:bg-[#fff1cc]"
+            >
+              Cần tư vấn dược sĩ
+            </Link>
+          ) : (
+            <Link
+              to={`/products/${product?._id}`}
+              className={`mt-2 block w-full rounded-md py-2 text-center text-xs font-semibold transition ${
+                outOfStock
+                  ? "cursor-not-allowed bg-[#eee] text-[#999]"
+                  : "bg-[#0067b8] text-white hover:bg-[#005299]"
+              }`}
+              onClick={(e) => outOfStock && e.preventDefault()}
+            >
+              {outOfStock ? "Hết hàng" : canBuyOnline ? "Chọn mua" : "Tra cứu"}
+            </Link>
+          )}
         </div>
       </div>
     </article>

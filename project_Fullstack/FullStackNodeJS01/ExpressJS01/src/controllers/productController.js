@@ -1,11 +1,24 @@
 const {
     getProductsService,
+    getHomeProductCarouselService,
     getAdminProductsService,
     getProductDetailService,
     createProductService,
     updateProductService,
     deleteProductService
 } = require("../services/productService");
+
+const getHomeProductCarousel = async (req, res) => {
+    try {
+        const data = await getHomeProductCarouselService(req.query);
+        return res.status(200).json(data);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            message: "Không thể lấy sản phẩm nổi bật trang chủ"
+        });
+    }
+};
 
 const getProducts = async (req, res) => {
     try {
@@ -103,6 +116,7 @@ const deleteProduct = async (req, res) => {
 };
 
 module.exports = {
+    getHomeProductCarousel,
     getProducts,
     getAdminProducts,
     getProductDetail,
